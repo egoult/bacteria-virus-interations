@@ -106,7 +106,7 @@ for(acq in scenarios$acquisition ){
         }
     }
 }
-stop()
+
 scenarios<-bind_rows(scenario_list)
 write.csv(scenarios, "results/bacteria-virus_scenarios.csv", row.names = FALSE)
 
