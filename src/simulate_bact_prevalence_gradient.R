@@ -10,7 +10,9 @@ graphics.off()
 #libraries
 require(pomp)
 require(tidyverse)
+require(wesanderson)
 require(patchwork)
+
 source("src/CreateSCxSIRmod.R")
 
 # save data
@@ -336,6 +338,7 @@ plt.overall<-ggplot(scen_plot %>% filter(between(prevalence,0.05,0.6)),
 # dev.off()
 
 
+
 scen_plot<- scenarios %>%
     filter(theta_vir_eta == 1) %>%
     filter( (theta_vir_beta == 1 ) |
@@ -352,18 +355,38 @@ scen_plot<- scenarios %>%
                                             #    theta_vir_eta == parameter ~ "Severity", 
                                                theta_vir_lambda == parameter ~ "Transmission")) %>%
             filter(!(theta_vir_beta == 1 & theta_vir_lambda == 1 ))
+            
 
-plt.peak<-ggplot(scen_plot %>% filter(between(prevalence,0.05,0.6)), 
-                aes(x = prevalence, y = peak, group = sim, color = parameter_name))+
-                geom_line(size = 1)+
-                geom_line( data = scenarios  %>% 
-                                 filter(between(prevalence,0.05,0.6)) %>% 
-                                 filter(theta_vir_beta == 1 & theta_vir_eta == 1 & theta_vir_lambda == 1 ), 
-                                 color = "grey", linetype = "dashed", alpha = 0.7) + 
-                facet_grid(~parameter)+
+independent_scen<- scenarios  %>% 
+                    filter(theta_vir_beta == 1 & theta_vir_eta == 1 & theta_vir_lambda == 1 ) %>%
+                    select(prevalence, peak) %>% 
+                    mutate(indep_peak = peak) %>%
+                    select(!peak)
+
+scen_plot_rescaled <- scen_plot %>%
+                        full_join(independent_scen) %>%
+                        mutate(rescaled_peak = peak/indep_peak) %>%
+                        mutate(parameter = case_when( parameter ==  0.8 ~ "Antagonistic", 
+                                                      parameter == 1.2  ~ "Synergistic"))
+
+plt.peak<-ggplot(scen_plot_rescaled %>% filter(between(prevalence,0.05,0.6)), 
+                aes(x = prevalence, y = rescaled_peak, group = sim, color = parameter_name))+
+                geom_line(size = 0.9, alpha = 0.5)+
+                geom_point(data = scen_plot_rescaled %>% 
+                                  filter(between(prevalence,0.05,0.6), prevalence == round(prevalence, 1)),                                  
+                                  shape = 19, color = "white", size = 7) +
+                geom_point(data = scen_plot_rescaled %>% 
+                                  filter(between(prevalence,0.05,0.6), prevalence == round(prevalence, 1)),                                  
+                                  aes(shape = as.factor(parameter)), alpha = 10, size = 7) +
+                geom_line(aes(y = indep_peak/ indep_peak), color = "grey", linetype = "solid", alpha = 0.5) + 
+                # scale_alpha_manual(values = c(0.5, 1))+
+                # scale_linetype_manual(values = c("solid", "solid"))+
+                scale_color_manual(values = wes_palette(name = "Darjeeling1", n = 5)[c(1,3,5)] )+
+                scale_shape_manual(values = c( "_", "+"))+
+                # facet_grid(~parameter)+
                 theme_classic()+
-                labs(x = "Bacterial prevalence", y = "Peak viral incidence", color = "Parameter varied")
+                labs(x = "Bacterial prevalence", y = "Relative Peak viral incidence", color = "Interaction", shape = "Direction")
 
-pdf("plots/prevalence_gradient_updated2.pdf")
+pdf("plots/prevalence_gradient_updated2.pdf", height = 10, width = 7.5)
     print(plt.peak)
 dev.off()
