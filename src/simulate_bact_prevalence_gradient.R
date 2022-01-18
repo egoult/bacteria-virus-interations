@@ -369,21 +369,77 @@ scen_plot_rescaled <- scen_plot %>%
                         mutate(parameter = case_when( parameter ==  0.8 ~ "Antagonistic", 
                                                       parameter == 1.2  ~ "Synergistic"))
 
-plt.peak<-ggplot(scen_plot_rescaled %>% filter(between(prevalence,0.05,0.6)), 
+plt.peak<-ggplot(scen_plot_rescaled %>% filter(between(prevalence,0.05,0.5)), 
                 aes(x = prevalence, y = rescaled_peak, group = sim, color = parameter_name))+
                 geom_line(size = 0.9, alpha = 0.5)+
-                # geom_point(data = scen_plot_rescaled %>% 
-                #                   filter(between(prevalence,0.05,0.6), prevalence == round(prevalence, 1)),                                  
-                #                   shape = 19, color = "white", size = 10) +
                 geom_point(data = scen_plot_rescaled %>% 
-                                  filter(between(prevalence,0.05,0.6), prevalence == round(prevalence, 1)),                                  
+                                  filter(between(prevalence,0.05,0.5), prevalence == round(prevalence, 1)),                                  
+                                  shape = 19, color = "white", size = 10) +
+                geom_point(data = scen_plot_rescaled %>% 
+                                  filter(between(prevalence,0.05,0.5), prevalence == round(prevalence, 1)),                                  
                                   aes(shape = as.factor(parameter)), alpha = 10, size = 7) +
                 geom_line(aes(y = indep_peak/ indep_peak), color = "grey", linetype = "solid", alpha = 0.5) +                 
-                scale_color_manual(values = wes_palette(name = "Darjeeling1", n = 5)[c(1,3,5)] )+
+                scale_color_manual(values = wes_palette(name = "Darjeeling1", n = 5)[c(1,4,5)] )+
                 scale_shape_manual(values = c( "_", "+"))+                
                 theme_classic()+
-                labs(x = "Bacterial prevalence", y = "Relative Peak viral incidence", color = "Interaction", shape = "Direction")
+                labs(x = "Bacterial prevalence", y = "Relative Peak viral incidence", color = "Interaction", shape = "Direction") +
+                theme(legend.position = "none") +
+                ylim(c(0.71, 1.29))
 
-pdf("plots/prevalence_gradient_updated2.pdf", height = 10, width = 7.5)
+pdf("plots/prevalence_gradient_pub_alt.pdf", height = 10, width = 7.5)
     print(plt.peak)
+dev.off()
+
+# check antibiotics impact
+# scenarios ---------------------------------
+# theta_vir_beta<-c(0.8, 1, 1.2)# virus aquisition
+# theta_vir_lambda<-c(0.8, 1, 1.2) # virus - transmission
+# rho<-c(0, 0.2)
+
+# scenarios2<- crossing(theta_vir_beta, theta_vir_lambda, rho)
+
+
+# # calculate for each scenario
+# scenario_list<-list()
+# for(scen in 1:nrow(scenarios2) ){
+#             # storing the results
+#             # counter<-counter + 1           
+            
+#             # changing the parameter values
+#             pars<-scenarios2[scen,]
+#             po_alt<-base_po
+#             coef(po_alt, names(pars))<-pars
+            
+#             # simulate for the gradient
+#             scenario_list[[scen]]<-PrevalenceGradient(po = po_alt, step = 0.01) %>%
+#                 mutate(sim = scen)
+                
+# }
+
+# scenarios<-bind_rows(scenario_list) %>% full_join(scenarios2 %>% mutate(sim = 1:nrow(scenarios2)))
+
+# scen_plot<- scenarios %>%       
+#             rowwise() %>%
+#             mutate(parameter = (theta_vir_beta+theta_vir_lambda)/2)%>%
+#             mutate(parameter = case_when(parameter== max(c(theta_vir_beta, theta_vir_lambda))~parameter,
+#                                     parameter> 1 ~ max(c(theta_vir_beta, theta_vir_lambda)),
+#                                     parameter< 1 ~ min(c(theta_vir_beta, theta_vir_lambda)))) %>%
+#             mutate(parameter_name = case_when((theta_vir_beta == theta_vir_lambda) & (theta_vir_beta != 1) ~ "Acquisition and Transmission" , 
+#                                                theta_vir_beta == parameter ~ "Acquisition",                                            
+#                                                theta_vir_lambda == parameter ~ "Transmission")) %>%
+#             mutate(antibiotics = case_when(rho ==0 ~ "No usage",
+#                                            rho > 0 ~ "Antibiotics usage"))                                               
+#             filter(!(theta_vir_beta == 1 & theta_vir_lambda == 1 ))
+
+# plt.antibiotics<- ggplot(scen_plot, aes(x = prevalence, y = peak, group = sim, color = parameter_name, linetype = antibiotics)) +
+#     geom_line()
+
+# have a think about this one
+
+# add in vieu virus plot
+source("/Users/u_goult/Documents/GitHub/virus-virus-interactions/plot_virus_virus.R")
+
+
+pdf("plots/bv_vv_comparison.pdf", height = 10, width = 15)
+    print(plt.peak + plt.peak.vv)
 dev.off()

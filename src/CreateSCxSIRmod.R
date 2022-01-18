@@ -36,7 +36,7 @@ CreateSCxSIRmod<-function(){
                             "theta_bac_eta",  "theta_vir_eta",                                                      
                             "I0",             "C0" ),
              params = c(cstar = 0.2,         R0_vir = 2.5,
-                        delta = 1/50,        gamma = 1/6,
+                        delta = 1/50,        gamma = 1/9,
                         rho = 0,             zeta = 1/3,
                         eta_bac = 15/100000, eta_vir = 1, 
                         theta_vir_beta = 1,  theta_vir_lambda = 1,

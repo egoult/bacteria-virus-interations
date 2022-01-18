@@ -68,7 +68,7 @@ DX_SR =  gamma * X_SI    - X_SR * foi_bac + delta * X_CR;
 
 // bacteria colonised
 DX_CS = - theta_vir_beta * X_CS * foi_vir - delta * X_CS + foi_bac * X_SS;
-DX_CI =   theta_vir_beta * X_CS * foi_vir - delta * X_CI + foi_bac * X_SI - gamma * X_CI;
+DX_CI =   theta_vir_beta * X_CS * foi_vir - (( 1-rho)*delta + rho * zeta) * X_CI + foi_bac * X_SI - gamma * X_CI;
 DX_CR =   gamma * X_CI - delta * X_CR + foi_bac * X_SR;
 
 // Accumulator variables
